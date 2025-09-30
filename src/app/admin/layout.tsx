@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Shield, Users, Newspaper, PanelLeft, AppWindow, Landmark, BadgeCheck } from "lucide-react";
+import { LogOut, Shield, Users, Newspaper, PanelLeft, AppWindow, Landmark, BadgeCheck, Info } from "lucide-react";
 import Loading from "../loading";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ const NavContent = () => {
     { href: '/admin/apps', label: 'تطبيقاتي', icon: AppWindow },
     { href: '/admin/withdrawals', label: 'السحب', icon: Landmark },
     { href: '/admin/verified', label: 'الحسابات الموثقة', icon: BadgeCheck },
+    { href: '/admin/pricing', label: 'الخطة المجانية', icon: Info },
   ];
 
   const renderNavItems = (items: typeof mainNavItems) => (
