@@ -1,11 +1,8 @@
 // src/hooks/use-auth.tsx
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import type { User, Profile, Post, Comment, Notification, AppItem, WithdrawalRequest, ChatConversation, ChatMessage } from '@/lib/types';
-import { initialUsers } from '@/lib/users-data';
-import { posts as initialPostsData } from '@/lib/posts-data';
-import { add, formatDistanceToNow } from 'date-fns';
 import { auth, db, storage } from '@/lib/firebase';
 import { 
   createUserWithEmailAndPassword, 
@@ -25,8 +22,48 @@ const VERIFICATION_COST = 1000;
 const BLUST_CLAIM_AMOUNT = 100;
 const BLUST_CLAIM_COOLDOWN_HOURS = 24;
 
+interface AuthContextType {
+    user: User | null;
+    loading: boolean;
+    login: (email: string, password_provided: string) => Promise<{ user: User | null; banned: boolean; banReason?: string; banEndDate?: string }>;
+    signup: (name: string, username: string, email: string, password_provided: string) => Promise<User | null>;
+    logout: () => Promise<void>;
+    updateUserProfile: (profileUpdates: Partial<Profile>, avatarFile?: File | null) => Promise<User | null>;
+    getAllUsers: (includeAdmin?: boolean) => User[];
+    updateUserByAdmin: (email: string, updates: Partial<User & { profile: Partial<Profile> }>) => Promise<User | null>;
+    deleteUserByAdmin: (email: string) => Promise<void>;
+    banUserByAdmin: (email: string, reason: string, days: number) => Promise<void>;
+    unbanUserByAdmin: (email: string) => Promise<void>;
+    getAllPosts: () => Promise<Post[]>;
+    addPost: (content: string, image?: File | null) => Promise<void>;
+    getPostsByUsername: (username: string) => Promise<Post[]>;
+    addPostAsAdmin: (content: string, image?: File | null) => Promise<void>;
+    toggleLikePost: (postId: string) => Promise<void>;
+    addCommentToPost: (postId: string, content: string, mediaFile?: File | null) => Promise<Comment | null>;
+    addReplyToComment: (postId: string, parentCommentId: number, content: string, mediaFile?: File | null) => Promise<Comment | null>;
+    toggleLikeComment: (postId: string, commentId: number) => Promise<void>;
+    markNotificationsAsRead: () => Promise<void>;
+    toggleFollow: (targetUserUID: string) => Promise<void>;
+    addApp: (name: string, description: string, icon: File, downloadUrl: string) => Promise<AppItem | null>;
+    getApps: () => Promise<AppItem[]>;
+    deleteApp: (appId: string) => Promise<void>;
+    claimBlust: () => Promise<{ success: boolean; newBalance?: number; message?: string }>;
+    submitWithdrawalRequest: (amount: number, method: 'zain_cash' | 'mastercard', walletNumber: string) => Promise<WithdrawalRequest | null>;
+    getAllWithdrawals: () => Promise<WithdrawalRequest[]>;
+    updateWithdrawalStatus: (withdrawalId: string, status: 'completed' | 'rejected') => Promise<void>;
+    verifyAccount: () => { success: boolean; message: string };
+    getVerifiedUsers: () => Promise<User[]>;
+    sendGift: (postId: string, amount: number) => Promise<void>;
+    getConversationsForUser: () => Promise<ChatConversation[]>;
+    getConversation: (conversationId: string) => Promise<ChatConversation | undefined>;
+    sendMessage: (conversationId: string, content: string, mediaFile?: File) => Promise<ChatMessage | null>;
+    startOrGetConversation: (targetUserEmail: string) => Promise<ChatConversation | null>;
+}
 
-export function useAuth() {
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [allUsersCache, setAllUsersCache] = useState<User[]>([]);
@@ -1033,12 +1070,15 @@ export function useAuth() {
 }, [user]);
 
 
-  return { user, loading, login, signup, logout, updateUserProfile, getAllUsers, updateUserByAdmin, deleteUserByAdmin, banUserByAdmin, unbanUserByAdmin, getAllPosts, addPost, getPostsByUsername, addPostAsAdmin, toggleLikePost, addCommentToPost, addReplyToComment, toggleLikeComment, markNotificationsAsRead, toggleFollow, addApp, getApps, deleteApp, claimBlust, submitWithdrawalRequest, getAllWithdrawals, updateWithdrawalStatus, verifyAccount, getVerifiedUsers, sendGift, getConversationsForUser, getConversation, sendMessage, startOrGetConversation };
+  const authContextValue: AuthContextType = { user, loading, login, signup, logout, updateUserProfile, getAllUsers, updateUserByAdmin, deleteUserByAdmin, banUserByAdmin, unbanUserByAdmin, getAllPosts, addPost, getPostsByUsername, addPostAsAdmin, toggleLikePost, addCommentToPost, addReplyToComment, toggleLikeComment, markNotificationsAsRead, toggleFollow, addApp, getApps, deleteApp, claimBlust, submitWithdrawalRequest, getAllWithdrawals, updateWithdrawalStatus, verifyAccount, getVerifiedUsers, sendGift, getConversationsForUser, getConversation, sendMessage, startOrGetConversation };
+  
+  return <AuthContext.Provider value={authContextValue}>{children}</AuthContext.Provider>;
 }
 
-declare global {
-  interface Window {
-    objectURLs: Map<string, File>;
-  }
+export function useAuth() {
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
 }
-const toast = (props: any) => { /* dummy toast fn */ };
