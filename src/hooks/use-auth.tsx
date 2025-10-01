@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import type { User, Profile, Post, Comment, Notification, AppItem, WithdrawalRequest, ChatConversation, ChatMessage } from '@/lib/types';
-import { auth, db, storage } from '@/lib/firebase';
+import { auth, db, storage } from '../lib/firebase';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
