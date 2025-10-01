@@ -80,6 +80,7 @@ export type Post = {
     id: string; // Changed to string for Firestore doc ID
     authorUsername: string;
     author?: Profile;
+    authorIsVerified?: boolean;
     content: string;
     imageUrl?: string;
     imageHint?: string;
