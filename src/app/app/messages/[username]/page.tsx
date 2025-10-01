@@ -17,7 +17,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogClose, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { db } from '../../../../lib/firebase';
+import { db } from '@/lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function ConversationPage() {
